@@ -69,7 +69,7 @@ void ringbuffer_init(ringbuffer_t* rb, uint8_t* mem, size_t memlen);
 /*
  * TODO: Add description
  */
-size_t ringbuffer_get_len(ringbuffer_t* rb);
+size_t ringbuffer_get_length(ringbuffer_t* rb);
 
 
 /*

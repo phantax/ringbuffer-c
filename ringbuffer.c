@@ -48,7 +48,7 @@ void ringbuffer_init(ringbuffer_t* rb, uint8_t* mem, size_t memlen) {
 /*
  * ___________________________________________________________________________
  */
-size_t ringbuffer_get_len(ringbuffer_t* rb) {
+size_t ringbuffer_get_length(ringbuffer_t* rb) {
 
     if (rb == 0) {
         return 0;
@@ -398,19 +398,14 @@ size_t ringbuffer_read_block(ringbuffer_t* rb, uint8_t* block, size_t len) {
  */
 size_t ringbuffer_peek_block(ringbuffer_t* rb, uint8_t* block, size_t len) {
 
-    if (rb == 0 || block == 0) {
+    if (block == 0) {
         return 0;
     }
 
-    /* Read the Block length */
-    size_t bl = 0;
-    if (ringbuffer_peek(rb, (uint8_t*)&bl, sizeof(size_t)) != sizeof(size_t)) {
-        /* >>> Invalid block >>> */
-        return 0;
-    }
+    /* Read the block length with sanity checks */
+    size_t bl = ringbuffer_peek_block_length(rb);
 
-    /* Sanity check: make sure the block is complete */
-    if (bl + sizeof(size_t) > rb->len) {
+    if (bl == 0) {
         /* >>> Invalid block >>> */
         return 0;
     }
@@ -456,23 +451,16 @@ size_t ringbuffer_peek_block_length(ringbuffer_t* rb) {
  */
 size_t ringbuffer_discard_block(ringbuffer_t* rb) {
 
-    /* the number of bytes from block discarded from ringbuffer */
-    size_t lenDiscarded = 0;
+    /* Read the block length with sanity checks */
+    size_t bl = ringbuffer_peek_block_length(rb);
 
-    if (rb != 0) {
-
-        size_t lenHeader = 0;
-        
-        if ((ringbuffer_peek(rb, (uint8_t*)&lenHeader,
-        		sizeof(size_t)) == sizeof(size_t))
-        				&& ((lenHeader + sizeof(size_t)) <= rb->len)) {
-
-			/* discard block */
-			lenDiscarded = ringbuffer_discard(rb, lenHeader + sizeof(size_t));
-        }
+    if (bl == 0) {
+        /* >>> Invalid block >>> */
+        return 0;
     }
 
-    return lenDiscarded;
+    /* Discard block */
+    return ringbuffer_discard(rb, bl + sizeof(size_t));
 }
 
 
