@@ -365,29 +365,33 @@ size_t ringbuffer_write_frame(ringbuffer_t* rb, uint8_t* frame, size_t len) {
  */
 size_t ringbuffer_read_frame(ringbuffer_t* rb, uint8_t* frame, size_t len) {
 
-    /* the number of bytes from frame read from ringbuffer */
-    size_t lenRead = 0;
-
-    if (rb != 0) {
-
-        size_t lenHeader = 0;
-        
-        if (ringbuffer_peek(rb, (uint8_t*)&lenHeader, sizeof(size_t))
-                == sizeof(size_t)) {
-
-            if (lenHeader + sizeof(size_t) <= rb->len
-                    && len >= lenHeader) {
-
-                /* discard header (we already read it) */
-                ringbuffer_discard(rb, sizeof(size_t));
-                
-                /* the actual frame */
-                lenRead = ringbuffer_read(rb, frame, lenHeader);
-            }
-        }
+    if (rb == 0 || frame == 0) {
+        return 0;
     }
 
-    return lenRead;
+    /* Payload length */
+    size_t pl = 0;
+    
+    /* Read the payload length */
+    if (ringbuffer_peek(rb, (uint8_t*)&pl, sizeof(size_t)) != sizeof(size_t)) {
+        /* >>> Invalid frame >>> */
+        return 0;
+    }
+
+    /* Sanity check: make sure that ...
+     *  -> the apparent payload is not longer than there is data
+     *  -> the user-provided buffer is sufficiently large to hold the payload
+     */
+    if (pl + sizeof(size_t) > rb->len || len < pl) {
+        /* >>> Invalid frame or invalid request >>> */
+        return 0;
+    }
+
+    /* Discard header (we already read it) */
+    ringbuffer_discard(rb, sizeof(size_t));
+    
+    /* Read payload */
+    return ringbuffer_read(rb, frame, pl);
 }
 
 
@@ -396,26 +400,32 @@ size_t ringbuffer_read_frame(ringbuffer_t* rb, uint8_t* frame, size_t len) {
  */
 size_t ringbuffer_peek_frame(ringbuffer_t* rb, uint8_t* frame, size_t len) {
 
-    /* the number of bytes from frame peeked from ringbuffer */
-    size_t lenpeeked = 0;
-
-    if (rb != 0) {
-
-    	/* length of frame read from header in ringbuffer */
-        size_t lenHeader = 0;
-        
-        if ((ringbuffer_peek(rb, (uint8_t*)&lenHeader,
-        		sizeof(size_t)) == sizeof(size_t))
-        				&& (lenHeader + sizeof(size_t) <= rb->len)
-						&& (len >= lenHeader)) {
-                
-			/* peek the actual frame */
-			lenpeeked = ringbuffer_peek_offset(
-					rb, sizeof(size_t), frame, lenHeader);
-        }
+    if (rb == 0 || frame == 0) {
+        return 0;
     }
 
-    return lenpeeked;
+    /* Payload length */
+    size_t pl = 0;
+    
+    /* Read the payload length */
+    if (ringbuffer_peek(rb, (uint8_t*)&pl, sizeof(size_t)) != sizeof(size_t)) {
+        /* >>> Invalid frame >>> */
+        return 0;
+    }
+
+    /* Sanity check: make sure the frame is complete */
+    if (pl + sizeof(size_t) > rb->len) {
+        /* >>> Invalid frame >>> */
+        return 0;
+    }
+
+    if (len < pl) {
+        /* >>> Frame is read only partially >>> */
+        pl = len;
+    }
+
+    /* Peek payload */
+    return ringbuffer_peek_offset(rb, sizeof(size_t), frame, pl);
 }
 
 
