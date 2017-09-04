@@ -369,11 +369,9 @@ size_t ringbuffer_read_block(ringbuffer_t* rb, uint8_t* block, size_t len) {
         return 0;
     }
 
-    /* Payload length */
-    size_t pl = 0;
-    
-    /* Read the payload length */
-    if (ringbuffer_peek(rb, (uint8_t*)&pl, sizeof(size_t)) != sizeof(size_t)) {
+    /* Read the Block length */
+    size_t bl = 0;
+    if (ringbuffer_peek(rb, (uint8_t*)&bl, sizeof(size_t)) != sizeof(size_t)) {
         /* >>> Invalid block >>> */
         return 0;
     }
@@ -382,7 +380,7 @@ size_t ringbuffer_read_block(ringbuffer_t* rb, uint8_t* block, size_t len) {
      *  -> the apparent payload is not longer than there is data
      *  -> the user-provided buffer is sufficiently large to hold the payload
      */
-    if (pl + sizeof(size_t) > rb->len || len < pl) {
+    if (bl + sizeof(size_t) > rb->len || len < bl) {
         /* >>> Invalid block or invalid request >>> */
         return 0;
     }
@@ -391,7 +389,7 @@ size_t ringbuffer_read_block(ringbuffer_t* rb, uint8_t* block, size_t len) {
     ringbuffer_discard(rb, sizeof(size_t));
     
     /* Read payload */
-    return ringbuffer_read(rb, block, pl);
+    return ringbuffer_read(rb, block, bl);
 }
 
 
@@ -404,28 +402,26 @@ size_t ringbuffer_peek_block(ringbuffer_t* rb, uint8_t* block, size_t len) {
         return 0;
     }
 
-    /* Payload length */
-    size_t pl = 0;
-    
-    /* Read the payload length */
-    if (ringbuffer_peek(rb, (uint8_t*)&pl, sizeof(size_t)) != sizeof(size_t)) {
+    /* Read the Block length */
+    size_t bl = 0;
+    if (ringbuffer_peek(rb, (uint8_t*)&bl, sizeof(size_t)) != sizeof(size_t)) {
         /* >>> Invalid block >>> */
         return 0;
     }
 
     /* Sanity check: make sure the block is complete */
-    if (pl + sizeof(size_t) > rb->len) {
+    if (bl + sizeof(size_t) > rb->len) {
         /* >>> Invalid block >>> */
         return 0;
     }
 
-    if (len < pl) {
-        /* >>> block is read only partially >>> */
-        pl = len;
+    if (len < bl) {
+        /* >>> Block is read only partially >>> */
+        bl = len;
     }
 
     /* Peek payload */
-    return ringbuffer_peek_offset(rb, sizeof(size_t), block, pl);
+    return ringbuffer_peek_offset(rb, sizeof(size_t), block, bl);
 }
 
 
@@ -434,19 +430,24 @@ size_t ringbuffer_peek_block(ringbuffer_t* rb, uint8_t* block, size_t len) {
  */
 size_t ringbuffer_peek_block_length(ringbuffer_t* rb) {
 
-    /* the length of the next block in the ringbuffer */
-    size_t length = 0;
-
-    if (rb != 0) {
-        if ((ringbuffer_peek(rb, (uint8_t*)&length,
-        		sizeof(size_t)) != sizeof(size_t))
-        				|| (length + sizeof(size_t) > rb->len)) {
-        	/* no block or invalid block */
-        	length = 0;
-        }
+    if (rb == 0) {
+        return 0;
     }
 
-    return length;
+    /* Read the Block length */
+    size_t bl = 0;
+    if (ringbuffer_peek(rb, (uint8_t*)&bl, sizeof(size_t)) != sizeof(size_t)) {
+        /* >>> Invalid block >>> */
+        return 0;
+    }
+
+    /* Sanity check: make sure the block is complete */
+    if (bl + sizeof(size_t) > rb->len) {
+        /* >>> Invalid block >>> */
+        return 0;
+    }
+
+    return bl;
 }
 
 
@@ -480,29 +481,33 @@ size_t ringbuffer_discard_block(ringbuffer_t* rb) {
  */
 size_t ringbuffer_count_blocks(ringbuffer_t* rb) {
 
+    if (rb == 0) {
+        return 0;
+    }
+
+    /* The number of blocks */
     size_t n = 0;
 
-    if (rb != 0) {
+    /* Length of a block */
+	size_t bl;
 
-    	size_t flen;
-
-    	size_t len = rb->len;
-    	size_t offset = 0;
-    	while (len > sizeof(size_t)) {
-    		len -= sizeof(size_t);
-    		if (ringbuffer_peek_offset(rb, offset, (uint8_t*)&flen, sizeof(size_t))
-    				== sizeof(size_t) && flen <= len) {
-    			/* skip this block */
-        		len -= flen;
-        		offset += sizeof(size_t) + flen;
-        		++n;
-    		} else {
-    			/* something is wrong */
-    			n = 0;
-    			len = 0;
-    		}
-    	}
-    }
+    /* Traverse ringbuffer and count blocks */
+	size_t len = rb->len;
+	size_t offset = 0;
+	while (len > sizeof(size_t)) {
+		len -= sizeof(size_t);
+		if (ringbuffer_peek_offset(rb, offset, (uint8_t*)&bl, sizeof(size_t))
+				== sizeof(size_t) && bl <= len) {
+            /* >>> Found one more block */
+    		++n;
+			/* Step over this block */
+    		len -= bl;
+    		offset += sizeof(size_t) + bl;
+		} else {
+			/* something is wrong */
+            return 0;
+		}
+	}
 
     return n;
 }

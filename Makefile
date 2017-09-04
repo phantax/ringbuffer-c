@@ -28,8 +28,10 @@ info:
 	@echo ""
 
 clean:
+	@echo "\033[01;31m=> Cleaning ...\033[00;00m"
 	rm -f ringbuffer.o
 	rm -f test
+	@echo ""
 
 
 
