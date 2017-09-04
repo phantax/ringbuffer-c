@@ -30,6 +30,14 @@
 #include <stddef.h>
 
 
+/*
+ * TODO: Add description
+ */
+typedef size_t rb_size_t;
+
+/*
+ * TODO: Add description
+ */
 typedef struct {
 
     /* pointer to actual buffer */
@@ -50,67 +58,131 @@ typedef struct {
 } ringbuffer_t;
 
 
-/* TODO: Add description */
+/* ========================================================================= */
+
+/*
+ * TODO: Add description
+ */
 void ringbuffer_init(ringbuffer_t* rb, uint8_t* mem, size_t memlen);
 
-/* TODO: Add description */
+
+/*
+ * TODO: Add description
+ */
 size_t ringbuffer_get_len(ringbuffer_t* rb);
 
-/* TODO: Add description */
+
+/*
+ * TODO: Add description
+ */
 size_t ringbuffer_get_space(ringbuffer_t* rb);
 
-/* TODO: Add description */
+
+/*
+ * TODO: Add description
+ */
 void ringbuffer_clear(ringbuffer_t* rb);
 
-/* TODO: Add description */
+
+/*
+ * TODO: Add description
+ */
 size_t ringbuffer_write(ringbuffer_t* rb, uint8_t* data, size_t len);
 
-/* TODO: Add description */
+
+/*
+ * TODO: Add description
+ */
 size_t ringbuffer_read(ringbuffer_t* rb, uint8_t* data, size_t len);
 
-/* TODO: Add description */
+
+/*
+ * TODO: Add description
+ */
 size_t ringbuffer_read_memory(ringbuffer_t* rb, uint8_t** data, size_t len);
 
-/* TODO: Add description */
+
+/*
+ * TODO: Add description
+ */
 size_t ringbuffer_peek(ringbuffer_t* rb, uint8_t* data, size_t len);
 
-/* TODO: Add description */
+
+/*
+ * TODO: Add description
+ */
 size_t ringbuffer_peek_offset(
         ringbuffer_t* rb, size_t offset, uint8_t* data, size_t len);
 
-/* TODO: Add description */
+
+/*
+ * TODO: Add description
+ */
 size_t ringbuffer_discard(ringbuffer_t* rb, size_t len);
 
 
-/* TODO: Add description */
-size_t ringbuffer_write_frame(ringbuffer_t* rb, uint8_t* frame, size_t len);
+/* ========================================================================= */
+/* Block access                                                              */
+/* ========================================================================= */
 
-/* TODO: Add description */
-size_t ringbuffer_read_frame(ringbuffer_t* rb, uint8_t* frame, size_t len);
-
-/* TODO: Add description */
-size_t ringbuffer_peek_frame(ringbuffer_t* rb, uint8_t* frame, size_t len);
-
-/* TODO: Add description */
-size_t ringbuffer_peek_frame_length(ringbuffer_t* rb);
-
-/* TODO: Add description */
-size_t ringbuffer_discard_frame(ringbuffer_t* rb);
-
-/* TODO: Add description */
-size_t ringbuffer_count_frames(ringbuffer_t* rb);
+/*
+ * TODO: Add description
+ */
+size_t ringbuffer_write_block(ringbuffer_t* rb, uint8_t* block, size_t len);
 
 
-/* TODO: Add description */
-size_t ringbuffer_write_frame_with_header(ringbuffer_t* rb,
+/*
+ * TODO: Add description
+ */
+size_t ringbuffer_read_block(ringbuffer_t* rb, uint8_t* block, size_t len);
+
+
+/*
+ * TODO: Add description
+ */
+size_t ringbuffer_peek_block(ringbuffer_t* rb, uint8_t* block, size_t len);
+
+
+/*
+ * TODO: Add description
+ */
+size_t ringbuffer_peek_block_length(ringbuffer_t* rb);
+
+
+/*
+ * TODO: Add description
+ */
+size_t ringbuffer_discard_block(ringbuffer_t* rb);
+
+
+/*
+ * TODO: Add description
+ */
+size_t ringbuffer_count_blocks(ringbuffer_t* rb);
+
+
+/* ========================================================================= */
+/* Frame access                                                              */
+/* ========================================================================= */
+
+/*
+ * TODO: Add description
+ */
+size_t ringbuffer_write_frame(ringbuffer_t* rb,
 		uint8_t* header, size_t hlen, uint8_t* frame, size_t flen);
 
-/* TODO: Add description */
-size_t ringbuffer_read_frame_with_header(ringbuffer_t* rb,
+
+/*
+ * TODO: Add description
+ */
+size_t ringbuffer_read_frame(ringbuffer_t* rb,
 		uint8_t* header, size_t hlen, uint8_t* frame, size_t max_flen);
 
-/* TODO: Add description */
-size_t ringbuffer_peek_frame_with_header(ringbuffer_t* rb,
+
+/*
+ * TODO: Add description
+ */
+size_t ringbuffer_peek_frame(ringbuffer_t* rb,
 		uint8_t* header, size_t hlen, uint8_t* frame, size_t max_flen);
 
 #endif

@@ -336,23 +336,23 @@ size_t ringbuffer_discard(ringbuffer_t* rb, size_t len) {
 /*
  * ___________________________________________________________________________
  */
-size_t ringbuffer_write_frame(ringbuffer_t* rb, uint8_t* frame, size_t len) {
+size_t ringbuffer_write_block(ringbuffer_t* rb, uint8_t* block, size_t len) {
 
-    /* the number of bytes from frame written to ringbuffer */
+    /* the number of bytes from block written to ringbuffer */
     size_t lenWritten = 0;
 
     if (rb != 0) {
 
-        /* only write frame if there is enough space for
-         * the full frame(assuming len never exceeds size) */
+        /* only write block if there is enough space for
+         * the full block (assuming len never exceeds size) */
         size_t space = (size_t)(rb->size - rb->len);
         if ((len + sizeof(size_t)) <= space) {
 
-            /* prepend and write frame length */
+            /* prepend and write block length */
             ringbuffer_write(rb, (uint8_t*)&len, sizeof(size_t));
 
-            /* write the actual frame */
-            lenWritten = ringbuffer_write(rb, frame, len);
+            /* write the actual block */
+            lenWritten = ringbuffer_write(rb, block, len);
         }
     }
 
@@ -363,9 +363,9 @@ size_t ringbuffer_write_frame(ringbuffer_t* rb, uint8_t* frame, size_t len) {
 /*
  * ___________________________________________________________________________
  */
-size_t ringbuffer_read_frame(ringbuffer_t* rb, uint8_t* frame, size_t len) {
+size_t ringbuffer_read_block(ringbuffer_t* rb, uint8_t* block, size_t len) {
 
-    if (rb == 0 || frame == 0) {
+    if (rb == 0 || block == 0) {
         return 0;
     }
 
@@ -374,7 +374,7 @@ size_t ringbuffer_read_frame(ringbuffer_t* rb, uint8_t* frame, size_t len) {
     
     /* Read the payload length */
     if (ringbuffer_peek(rb, (uint8_t*)&pl, sizeof(size_t)) != sizeof(size_t)) {
-        /* >>> Invalid frame >>> */
+        /* >>> Invalid block >>> */
         return 0;
     }
 
@@ -383,7 +383,7 @@ size_t ringbuffer_read_frame(ringbuffer_t* rb, uint8_t* frame, size_t len) {
      *  -> the user-provided buffer is sufficiently large to hold the payload
      */
     if (pl + sizeof(size_t) > rb->len || len < pl) {
-        /* >>> Invalid frame or invalid request >>> */
+        /* >>> Invalid block or invalid request >>> */
         return 0;
     }
 
@@ -391,16 +391,16 @@ size_t ringbuffer_read_frame(ringbuffer_t* rb, uint8_t* frame, size_t len) {
     ringbuffer_discard(rb, sizeof(size_t));
     
     /* Read payload */
-    return ringbuffer_read(rb, frame, pl);
+    return ringbuffer_read(rb, block, pl);
 }
 
 
 /*
  * ___________________________________________________________________________
  */
-size_t ringbuffer_peek_frame(ringbuffer_t* rb, uint8_t* frame, size_t len) {
+size_t ringbuffer_peek_block(ringbuffer_t* rb, uint8_t* block, size_t len) {
 
-    if (rb == 0 || frame == 0) {
+    if (rb == 0 || block == 0) {
         return 0;
     }
 
@@ -409,39 +409,39 @@ size_t ringbuffer_peek_frame(ringbuffer_t* rb, uint8_t* frame, size_t len) {
     
     /* Read the payload length */
     if (ringbuffer_peek(rb, (uint8_t*)&pl, sizeof(size_t)) != sizeof(size_t)) {
-        /* >>> Invalid frame >>> */
+        /* >>> Invalid block >>> */
         return 0;
     }
 
-    /* Sanity check: make sure the frame is complete */
+    /* Sanity check: make sure the block is complete */
     if (pl + sizeof(size_t) > rb->len) {
-        /* >>> Invalid frame >>> */
+        /* >>> Invalid block >>> */
         return 0;
     }
 
     if (len < pl) {
-        /* >>> Frame is read only partially >>> */
+        /* >>> block is read only partially >>> */
         pl = len;
     }
 
     /* Peek payload */
-    return ringbuffer_peek_offset(rb, sizeof(size_t), frame, pl);
+    return ringbuffer_peek_offset(rb, sizeof(size_t), block, pl);
 }
 
 
 /*
  * ___________________________________________________________________________
  */
-size_t ringbuffer_peek_frame_length(ringbuffer_t* rb) {
+size_t ringbuffer_peek_block_length(ringbuffer_t* rb) {
 
-    /* the length of the next frame in the ringbuffer */
+    /* the length of the next block in the ringbuffer */
     size_t length = 0;
 
     if (rb != 0) {
         if ((ringbuffer_peek(rb, (uint8_t*)&length,
         		sizeof(size_t)) != sizeof(size_t))
         				|| (length + sizeof(size_t) > rb->len)) {
-        	/* no frame or invalid frame */
+        	/* no block or invalid block */
         	length = 0;
         }
     }
@@ -453,9 +453,9 @@ size_t ringbuffer_peek_frame_length(ringbuffer_t* rb) {
 /*
  * ___________________________________________________________________________
  */
-size_t ringbuffer_discard_frame(ringbuffer_t* rb) {
+size_t ringbuffer_discard_block(ringbuffer_t* rb) {
 
-    /* the number of bytes from frame discarded from ringbuffer */
+    /* the number of bytes from block discarded from ringbuffer */
     size_t lenDiscarded = 0;
 
     if (rb != 0) {
@@ -466,7 +466,7 @@ size_t ringbuffer_discard_frame(ringbuffer_t* rb) {
         		sizeof(size_t)) == sizeof(size_t))
         				&& ((lenHeader + sizeof(size_t)) <= rb->len)) {
 
-			/* discard frame */
+			/* discard block */
 			lenDiscarded = ringbuffer_discard(rb, lenHeader + sizeof(size_t));
         }
     }
@@ -478,7 +478,7 @@ size_t ringbuffer_discard_frame(ringbuffer_t* rb) {
 /*
  * ___________________________________________________________________________
  */
-size_t ringbuffer_count_frames(ringbuffer_t* rb) {
+size_t ringbuffer_count_blocks(ringbuffer_t* rb) {
 
     size_t n = 0;
 
@@ -492,7 +492,7 @@ size_t ringbuffer_count_frames(ringbuffer_t* rb) {
     		len -= sizeof(size_t);
     		if (ringbuffer_peek_offset(rb, offset, (uint8_t*)&flen, sizeof(size_t))
     				== sizeof(size_t) && flen <= len) {
-    			/* skip this frame */
+    			/* skip this block */
         		len -= flen;
         		offset += sizeof(size_t) + flen;
         		++n;
@@ -511,7 +511,7 @@ size_t ringbuffer_count_frames(ringbuffer_t* rb) {
 /*
  * ___________________________________________________________________________
  */
-size_t ringbuffer_write_frame_with_header(ringbuffer_t* rb,
+size_t ringbuffer_write_frame(ringbuffer_t* rb,
 		uint8_t* header, size_t hlen, uint8_t* frame, size_t flen) {
 
     /* the total number of bytes written to ringbuffer */
@@ -545,7 +545,7 @@ size_t ringbuffer_write_frame_with_header(ringbuffer_t* rb,
 /*
  * ___________________________________________________________________________
  */
-size_t ringbuffer_read_frame_with_header(ringbuffer_t* rb,
+size_t ringbuffer_read_frame(ringbuffer_t* rb,
 		uint8_t* header, size_t hlen, uint8_t* frame, size_t max_flen) {
 
     /* the number of frame bytes read from ringbuffer */
@@ -582,7 +582,7 @@ size_t ringbuffer_read_frame_with_header(ringbuffer_t* rb,
 /*
  * ___________________________________________________________________________
  */
-size_t ringbuffer_peek_frame_with_header(ringbuffer_t* rb,
+size_t ringbuffer_peek_frame(ringbuffer_t* rb,
 		uint8_t* header, size_t hlen, uint8_t* frame, size_t max_flen) {
 
     /* the number of frame bytes read from ringbuffer */
