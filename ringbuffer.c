@@ -48,10 +48,11 @@ void ringbuffer_init(ringbuffer_t* rb, uint8_t* mem, size_t memlen) {
 /*
  * ___________________________________________________________________________
  */
-size_t ringbuffer_get_length(ringbuffer_t* rb) {
+int ringbuffer_get_length(ringbuffer_t* rb) {
 
     if (rb == 0) {
-        return 0;
+        /* >>> Invalid pointer to ringbuffer >>> */
+        return -1;
     }
 
     return rb->len;
@@ -61,10 +62,11 @@ size_t ringbuffer_get_length(ringbuffer_t* rb) {
 /*
  * ___________________________________________________________________________
  */
-size_t ringbuffer_get_space(ringbuffer_t* rb) {
+int ringbuffer_get_space(ringbuffer_t* rb) {
 
     if (rb == 0) {
-        return 0;
+        /* >>> Invalid pointer to ringbuffer >>> */
+        return -1;
     }
 
     /* assuming <len> never exceeds <size> (which should never happen) */
@@ -78,6 +80,7 @@ size_t ringbuffer_get_space(ringbuffer_t* rb) {
 void ringbuffer_clear(ringbuffer_t* rb) {
 
     if (rb == 0) {
+        /* >>> Invalid pointer to ringbuffer >>> */
         return;
     }
 
@@ -90,34 +93,31 @@ void ringbuffer_clear(ringbuffer_t* rb) {
 /*
  * ___________________________________________________________________________
  */
-size_t ringbuffer_write(ringbuffer_t* rb, uint8_t* data, size_t len) {
+int ringbuffer_write(ringbuffer_t* rb, uint8_t* data, size_t len) {
 
     if (rb == 0 || data == 0) {
-        return 0;
+        /* >>> Invalid pointer to ringbuffer or data buffer >>> */
+        return -1;
     }
 
-    /* the number of bytes actually written to ringbuffer */
-    size_t lenWritten = 0;
-
-    /* don't write more than there is space
-     * (assuming len never exceeds size) */
-    size_t space = (size_t)(rb->size - rb->len);
-    if (len > space) {
-        len = space;
+    /* Sanity check: don't write more than the ringbuffer can hold */
+    if (len > (size_t)(rb->size - rb->len)) {
+        /* >>> Ringbuffer too small to write data >>> */
+        return -1;
     }
+
     rb->len += len;
-    lenWritten = len;
 
     /* assuming write index never exceeds size */
-    size_t tmpLen = (size_t)(rb->size - rb->iw);
-    if (len <= tmpLen) {
+    size_t straight = (size_t)(rb->size - rb->iw);
+    if (len <= straight) {
 
         /* copy data until end of buffer */
         memcpy(rb->buffer + rb->iw, data, len);
 
         /* advance write index */
         rb->iw += len;
-        if (len == tmpLen) {
+        if (len == straight) {
             /* here: rb->iw == rb->size, so wrap write index */
             rb->iw = 0;
         }
@@ -125,17 +125,17 @@ size_t ringbuffer_write(ringbuffer_t* rb, uint8_t* data, size_t len) {
     } else {
 
         /* copy data until end of buffer */
-        memcpy(rb->buffer + rb->iw, data, tmpLen);
+        memcpy(rb->buffer + rb->iw, data, straight);
 
         /* write index implicitly wrapped */
-        rb->iw = len - tmpLen;
+        rb->iw = len - straight;
 
         /* copy remaining data to beginning of buffer */
-        memcpy(rb->buffer, data + tmpLen, rb->iw);
+        memcpy(rb->buffer, data + straight, rb->iw);
 
     }
 
-    return lenWritten;
+    return len;
 }
 
 
