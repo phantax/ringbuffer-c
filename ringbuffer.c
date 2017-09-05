@@ -33,6 +33,7 @@
 void ringbuffer_init(ringbuffer_t* rb, uint8_t* mem, size_t memlen) {
 
     if (rb == 0 || mem == 0) {
+        /* >>> Invalid pointer to ringbuffer or memory >>> */
         return;
     }
 
@@ -42,6 +43,22 @@ void ringbuffer_init(ringbuffer_t* rb, uint8_t* mem, size_t memlen) {
 
     /* Reset read/write pointers */
     ringbuffer_clear(rb);
+}
+
+
+/*
+ * ___________________________________________________________________________
+ */
+void ringbuffer_clear(ringbuffer_t* rb) {
+
+    if (rb == 0) {
+        /* >>> Invalid pointer to ringbuffer >>> */
+        return;
+    }
+
+    rb->len = 0;
+    rb->iw = 0;
+    rb->ir = 0;
 }
 
 
@@ -77,22 +94,6 @@ int ringbuffer_get_space(ringbuffer_t* rb) {
 /*
  * ___________________________________________________________________________
  */
-void ringbuffer_clear(ringbuffer_t* rb) {
-
-    if (rb == 0) {
-        /* >>> Invalid pointer to ringbuffer >>> */
-        return;
-    }
-
-    rb->len = 0;
-    rb->iw = 0;
-    rb->ir = 0;
-}
-
-
-/*
- * ___________________________________________________________________________
- */
 int ringbuffer_write(ringbuffer_t* rb, uint8_t* data, size_t len) {
 
     if (rb == 0 || data == 0) {
@@ -106,32 +107,87 @@ int ringbuffer_write(ringbuffer_t* rb, uint8_t* data, size_t len) {
         return -1;
     }
 
-    rb->len += len;
+    /* Determine the amount of data that can be written linearly */
+    size_t linlen = (size_t)(rb->size - rb->iw);
 
-    /* assuming write index never exceeds size */
-    size_t straight = (size_t)(rb->size - rb->iw);
-    if (len <= straight) {
+    if (len <= linlen) {
 
-        /* copy data until end of buffer */
+        /* Copy data to ringbuffer linearly */
         memcpy(rb->buffer + rb->iw, data, len);
 
-        /* advance write index */
+        /* Advance write index */
         rb->iw += len;
-        if (len == straight) {
-            /* here: rb->iw == rb->size, so wrap write index */
+        if (len == linlen) {
+            /* >>> rb->iw == rb->size >>> */
+            /* Wrap write index */
             rb->iw = 0;
         }
 
     } else {
 
-        /* copy data until end of buffer */
-        memcpy(rb->buffer + rb->iw, data, straight);
+        /* Copy first part of data linearly */
+        memcpy(rb->buffer + rb->iw, data, linlen);
 
-        /* write index implicitly wrapped */
-        rb->iw = len - straight;
+        /* Move write index such that it reflects the correct
+         * state AFTER all data has been written (implicit wrap) */
+        rb->iw = len - linlen;
+
+        /* Copy remaining data linearly to beginning of ringbuffer */
+        memcpy(rb->buffer, data + linlen, rb->iw);
+
+    }
+
+    rb->len += len;
+
+    return len;
+}
+
+
+/*
+ * ___________________________________________________________________________
+ */
+int ringbuffer_read(ringbuffer_t* rb, uint8_t* data, size_t len) {
+
+    if (rb == 0 || data == 0) {
+        /* >>> Invalid pointer to ringbuffer or data buffer >>> */
+        return -1;
+    }
+
+    /* the number of bytes actually read from ringbuffer */
+    size_t lenRead = 0;
+
+    /* don't read more than there is data */
+    if (len > rb->len) {
+        len = rb->len;
+    }
+
+    rb->len -= len;
+
+    /* assuming read index never exceeds size */
+    size_t linlen = (size_t)(rb->size - rb->ir);
+    if (len <= linlen) {
+
+        /* copy data until end of buffer */
+        memcpy(data, rb->buffer + rb->ir, len);
+
+        /* advance read index */
+        rb->ir += len;
+        if (len == linlen) {
+            /* here: rb->ir == rb->size, so wrap read index */
+            rb->ir = 0;
+        }
+
+    } else {
+
+        /* copy data until end of buffer (assuming
+         * write index never exceeds size) */
+        memcpy(data, rb->buffer + rb->ir, linlen);
+
+        /* read index implicitly wrapped */
+        rb->ir = len - linlen;
 
         /* copy remaining data to beginning of buffer */
-        memcpy(rb->buffer, data + straight, rb->iw);
+        memcpy(data + linlen, rb->buffer, rb->ir);
 
     }
 
@@ -142,58 +198,7 @@ int ringbuffer_write(ringbuffer_t* rb, uint8_t* data, size_t len) {
 /*
  * ___________________________________________________________________________
  */
-size_t ringbuffer_read(ringbuffer_t* rb, uint8_t* data, size_t len) {
-
-    if (rb == 0 || data == 0) {
-        return 0;
-    }
-
-    /* the number of bytes actually read from ringbuffer */
-    size_t lenRead = 0;
-
-    /* don't read more than there is data */
-    if (len > rb->len) {
-        len = rb->len;
-    }
-    rb->len -= len;
-    lenRead = len;
-
-    /* assuming read index never exceeds size */
-    size_t tmpLen = (size_t)(rb->size - rb->ir);
-    if (len <= tmpLen) {
-
-        /* copy data until end of buffer */
-        memcpy(data, rb->buffer + rb->ir, len);
-
-        /* advance read index */
-        rb->ir += len;
-        if (len == tmpLen) {
-            /* here: rb->ir == rb->size, so wrap read index */
-            rb->ir = 0;
-        }
-
-    } else {
-
-        /* copy data until end of buffer (assuming
-         * write index never exceeds size) */
-        memcpy(data, rb->buffer + rb->ir, tmpLen);
-
-        /* read index implicitly wrapped */
-        rb->ir = len - tmpLen;
-
-        /* copy remaining data to beginning of buffer */
-        memcpy(data + tmpLen, rb->buffer, rb->ir);
-
-    }
-
-    return lenRead;
-}
-
-
-/*
- * ___________________________________________________________________________
- */
-size_t ringbuffer_read_memory(ringbuffer_t* rb, uint8_t** data, size_t len) {
+int ringbuffer_read_memory(ringbuffer_t* rb, uint8_t** data, size_t len) {
 
 	return 0;
 }
@@ -205,7 +210,8 @@ size_t ringbuffer_read_memory(ringbuffer_t* rb, uint8_t** data, size_t len) {
 size_t ringbuffer_peek(ringbuffer_t* rb, uint8_t* data, size_t len) {
 
     if (rb == 0 || data == 0) {
-        return 0;
+        /* >>> Invalid pointer to ringbuffer or data buffer >>> */
+        return -1;
     }
 
     /* Make sure not to read more data than there is available */
@@ -240,63 +246,61 @@ size_t ringbuffer_peek(ringbuffer_t* rb, uint8_t* data, size_t len) {
 /*
  * ___________________________________________________________________________
  */
-size_t ringbuffer_peek_offset(
+int ringbuffer_peek_offset(
         ringbuffer_t* rb, size_t offset, uint8_t* data, size_t len) {
 
-    /* the number of bytes actually peeked from ringbuffer */
-    size_t lenpeeked = 0;
-
-    if (rb != 0 && data != 0) {
-
-        /* vLen is the "virtual" length of the ringbuffer's
-         *  content after considering data to disregard (offset) */
-        size_t vLen = rb->len;
-        if (offset < vLen) {
-            vLen -= offset;
-        } else {
-            vLen = 0;
-        }
-
-        /* don't read more than there is data */
-        if (len > vLen) {
-            len = vLen;
-        }
-        lenpeeked = len;
-
-        /* the "virtual" read index of the ringbuffer's
-         * after considering data to disregard (offset) */
-        size_t vir = rb->ir + offset;
-        if (vir >= rb->size) {
-            vir -= rb->size;
-        }
-
-        /* assuming read index never exceeds size */
-        size_t tmpLen = (size_t)(rb->size - vir);
-        if (len <= tmpLen) {
-
-            /* copy data until end of buffer */
-            memcpy(data, rb->buffer + vir, len);
-
-        } else {
-
-            /* copy data until end of buffer (assuming
-             * write index never exceeds size) */
-            memcpy(data, rb->buffer + vir, tmpLen);
-
-            /* copy remaining data to beginning of buffer */
-            memcpy(data + tmpLen, rb->buffer, len - tmpLen);
-
-        }
+    if (rb == 0 || data == 0) {
+        /* >>> Invalid pointer to ringbuffer or data buffer >>> */
+        return -1;
     }
 
-    return lenpeeked;
+    /* vLen is the "virtual" length of the ringbuffer's
+     *  content after considering data to disregard (offset) */
+    size_t vLen = rb->len;
+    if (offset < vLen) {
+        vLen -= offset;
+    } else {
+        vLen = 0;
+    }
+
+    /* don't read more than there is data */
+    if (len > vLen) {
+        len = vLen;
+    }
+
+    /* the "virtual" read index of the ringbuffer's
+     * after considering data to disregard (offset) */
+    size_t vir = rb->ir + offset;
+    if (vir >= rb->size) {
+        vir -= rb->size;
+    }
+
+    /* assuming read index never exceeds size */
+    size_t linlen = (size_t)(rb->size - vir);
+    if (len <= linlen) {
+
+        /* copy data until end of buffer */
+        memcpy(data, rb->buffer + vir, len);
+
+    } else {
+
+        /* copy data until end of buffer (assuming
+         * write index never exceeds size) */
+        memcpy(data, rb->buffer + vir, linlen);
+
+        /* copy remaining data to beginning of buffer */
+        memcpy(data + linlen, rb->buffer, len - linlen);
+
+    }
+
+    return len;
 }
 
 
 /*
  * ___________________________________________________________________________
  */
-size_t ringbuffer_discard(ringbuffer_t* rb, size_t len) {
+int ringbuffer_discard(ringbuffer_t* rb, size_t len) {
 
     /* the number of bytes actually discarded from ringbuffer */
     size_t lenDiscarded = 0;
@@ -311,12 +315,12 @@ size_t ringbuffer_discard(ringbuffer_t* rb, size_t len) {
         lenDiscarded = len;
 
         /* assuming read index never exceeds size */
-        size_t tmpLen = (size_t)(rb->size - rb->ir);
-        if (len <= tmpLen) {
+        size_t linlen = (size_t)(rb->size - rb->ir);
+        if (len <= linlen) {
 
             /* advance read index */
             rb->ir += len;
-            if (len == tmpLen) {
+            if (len == linlen) {
                 /* here: rb->ir == rb->size, so wrap read index */
                 rb->ir = 0;
             }
@@ -324,7 +328,7 @@ size_t ringbuffer_discard(ringbuffer_t* rb, size_t len) {
         } else {
 
             /* read index implicitly wrapped */
-            rb->ir = len - tmpLen;
+            rb->ir = len - linlen;
 
         }
     }
