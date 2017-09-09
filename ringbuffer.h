@@ -63,7 +63,7 @@ typedef struct {
 /*
  * TODO: Add description
  */
-void ringbuffer_init(ringbuffer_t* rb, uint8_t* mem, size_t memlen);
+int ringbuffer_init(ringbuffer_t* rb, uint8_t* mem, size_t memlen);
 
 
 /*
@@ -81,13 +81,19 @@ int ringbuffer_get_space(ringbuffer_t* rb);
 /*
  * TODO: Add description
  */
-void ringbuffer_clear(ringbuffer_t* rb);
+int ringbuffer_clear(ringbuffer_t* rb);
 
 
 /*
  * TODO: Add description
  */
 int ringbuffer_write(ringbuffer_t* rb, uint8_t* data, size_t len);
+
+
+/*
+ * TODO: Add description
+ */
+int ringbuffer_write_all(ringbuffer_t* rb, uint8_t* data, size_t len);
 
 
 /*
@@ -128,37 +134,37 @@ int ringbuffer_discard(ringbuffer_t* rb, size_t len);
 /*
  * TODO: Add description
  */
-size_t ringbuffer_write_block(ringbuffer_t* rb, uint8_t* block, size_t len);
+int ringbuffer_write_block(ringbuffer_t* rb, uint8_t* block, size_t len);
 
 
 /*
  * TODO: Add description
  */
-size_t ringbuffer_read_block(ringbuffer_t* rb, uint8_t* block, size_t len);
+int ringbuffer_read_block(ringbuffer_t* rb, uint8_t* block, size_t len);
 
 
 /*
  * TODO: Add description
  */
-size_t ringbuffer_peek_block(ringbuffer_t* rb, uint8_t* block, size_t len);
+int ringbuffer_peek_block(ringbuffer_t* rb, uint8_t* block, size_t len);
 
 
 /*
  * TODO: Add description
  */
-size_t ringbuffer_peek_block_length(ringbuffer_t* rb);
+int ringbuffer_peek_block_length(ringbuffer_t* rb);
 
 
 /*
  * TODO: Add description
  */
-size_t ringbuffer_discard_block(ringbuffer_t* rb);
+int ringbuffer_discard_block(ringbuffer_t* rb);
 
 
 /*
  * TODO: Add description
  */
-size_t ringbuffer_count_blocks(ringbuffer_t* rb);
+int ringbuffer_count_blocks(ringbuffer_t* rb);
 
 
 /* ========================================================================= */
@@ -168,21 +174,21 @@ size_t ringbuffer_count_blocks(ringbuffer_t* rb);
 /*
  * TODO: Add description
  */
-size_t ringbuffer_write_frame(ringbuffer_t* rb,
+int ringbuffer_write_frame(ringbuffer_t* rb,
 		uint8_t* header, size_t hlen, uint8_t* frame, size_t flen);
 
 
 /*
  * TODO: Add description
  */
-size_t ringbuffer_read_frame(ringbuffer_t* rb,
+int ringbuffer_read_frame(ringbuffer_t* rb,
 		uint8_t* header, size_t hlen, uint8_t* frame, size_t max_flen);
 
 
 /*
  * TODO: Add description
  */
-size_t ringbuffer_peek_frame(ringbuffer_t* rb,
+int ringbuffer_peek_frame(ringbuffer_t* rb,
 		uint8_t* header, size_t hlen, uint8_t* frame, size_t max_flen);
 
 #endif
