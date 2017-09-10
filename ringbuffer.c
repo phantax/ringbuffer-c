@@ -91,8 +91,8 @@ int ringbuffer_get_space(ringbuffer_t* rb) {
         return -1;
     }
 
-    /* Return the ringbuffer's space; assuming <len> never
-     * exceeds <size> (which should never happen) */
+    /* Return the ringbuffer's space. We assume here that <len>
+     * never exceeds <size> (which should actually never happen) */
     return (size_t)(rb->size - rb->len);
 }
 
@@ -107,9 +107,11 @@ int ringbuffer_write(ringbuffer_t* rb, uint8_t* data, size_t len) {
         return -1;
     }
 
-    /* Don't write more than the ringbuffer can hold */
+    /* Don't write more data than the ringbuffer can hold */
     size_t space = (size_t)(rb->size - rb->len);
     if (len > space) {
+    	/* >>> Requested to write more data than the ringbuffer can hold >>> */
+    	/* Truncate write request */
     	len = space;
     }
 
@@ -117,6 +119,7 @@ int ringbuffer_write(ringbuffer_t* rb, uint8_t* data, size_t len) {
     size_t linlen = (size_t)(rb->size - rb->iw);
 
     if (len <= linlen) {
+    	/* >>> The whole write request can be performed linearly >>> */
 
         /* Copy data to ringbuffer linearly */
         memcpy(rb->buffer + rb->iw, data, len);
@@ -130,6 +133,7 @@ int ringbuffer_write(ringbuffer_t* rb, uint8_t* data, size_t len) {
         }
 
     } else {
+    	/* >>> The write request requires two steps >>> */
 
         /* Copy first part of data linearly */
         memcpy(rb->buffer + rb->iw, data, linlen);
@@ -171,6 +175,7 @@ int ringbuffer_write_all(ringbuffer_t* rb, uint8_t* data, size_t len) {
     size_t linlen = (size_t)(rb->size - rb->iw);
 
     if (len <= linlen) {
+    	/* >>> The whole write request can be performed linearly >>> */
 
         /* Copy data to ringbuffer linearly */
         memcpy(rb->buffer + rb->iw, data, len);
@@ -184,6 +189,7 @@ int ringbuffer_write_all(ringbuffer_t* rb, uint8_t* data, size_t len) {
         }
 
     } else {
+    	/* >>> The write request requires two steps >>> */
 
         /* Copy first part of data linearly */
         memcpy(rb->buffer + rb->iw, data, linlen);
