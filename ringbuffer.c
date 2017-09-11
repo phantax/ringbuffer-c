@@ -658,18 +658,20 @@ int ringbuffer_read_frame(ringbuffer_t* rb,
 	size_t len = 0;
 
 	if (ringbuffer_peek(rb, (uint8_t*)&len, sizeof(size_t))
-			== sizeof(size_t)) {
+			!= sizeof(size_t)) {
 		/* >>> Reading frame length failed >>> */
 		return -1;
 	}
 
+    /* Sanity check: make sure the whole frame fits into remaining data */
 	if (len + sizeof(size_t) > rb->len) {
 		/* >>> Frame seems longer than there is data in the ringbuffer >>> */
 		return -1;
 	}
 
+    /* Make sure the user-provided buffer is sufficiently large */
 	if (len > (hlen + max_flen)) {
-		/* >>> USer provided buffer too small to hold frame data >>> */
+		/* >>> User-provided buffer too small to hold frame data >>> */
 		return -1;
 	}
 
@@ -693,30 +695,37 @@ int ringbuffer_read_frame(ringbuffer_t* rb,
 int ringbuffer_peek_frame(ringbuffer_t* rb,
 		uint8_t* header, size_t hlen, uint8_t* frame, size_t max_flen) {
 
-    /* the number of frame bytes read from ringbuffer */
-    size_t n = 0;
-
-    if (rb != 0) {
-
-    	/* the length of the next frame in the ringbuffer */
-        size_t len = 0;
-
-        if (ringbuffer_peek(rb, (uint8_t*)&len, sizeof(size_t))
-                == sizeof(size_t)) {
-
-            if (len + sizeof(size_t) <= rb->len
-            		&& (hlen + max_flen) >= len) {
-
-                /* the header */
-                ringbuffer_peek_offset(rb, sizeof(size_t), header, hlen);
-
-                /* the frame */
-                n = ringbuffer_peek_offset(rb, sizeof(size_t) + hlen,
-                		frame, len - hlen);
-
-            }
-        }
+	/* Sanity check: make sure input pointer are ok */
+    if (rb == 0 || header == 0 || data == 0) {
+    	/* >>> Invalid pointer(s) >>> */
+        return -1;
     }
 
-    return n;
+	/* The length of the next frame in the ringbuffer */
+	size_t len = 0;
+
+	if (ringbuffer_peek(rb, (uint8_t*)&len, sizeof(size_t))
+			!= sizeof(size_t)) {
+		/* >>> Reading frame length failed >>> */
+		return -1;
+	}
+
+    /* Sanity check: make sure the whole frame fits into remaining data */
+	if (len + sizeof(size_t) > rb->len) {
+		/* >>> Frame seems longer than there is data in the ringbuffer >>> */
+		return -1;
+	}
+
+    /* Make sure the user-provided buffer is sufficiently large */
+	if (len > (hlen + max_flen)) {
+		/* >>> User-provided buffer too small to hold frame data >>> */
+		return -1;
+	}
+
+    /* Peek frame header */
+    ringbuffer_peek_offset(rb, sizeof(size_t), header, hlen);
+
+    /* Peek frame data and return its length */
+    return ringbuffer_peek_offset(rb, sizeof(size_t) + hlen, frame, len - hlen);
 }
+
