@@ -595,7 +595,7 @@ int ringbuffer_count_blocks(ringbuffer_t* rb) {
  * ___________________________________________________________________________
  */
 int ringbuffer_write_frame(ringbuffer_t* rb,
-		uint8_t* header, size_t hlen, uint8_t* data, size_t flen) {
+		uint8_t* header, size_t hlen, uint8_t* data, size_t plen) {
 
 	/* Sanity check: make sure input pointer are ok */
     if (rb == 0 || header == 0 || data == 0) {
@@ -604,7 +604,7 @@ int ringbuffer_write_frame(ringbuffer_t* rb,
     }
 
 	/* The total frame length including header */
-	size_t len = hlen + flen;
+	size_t len = hlen + plen;
 
 	/* only write frame if there is enough space for
 	 * the full frame (assuming len never exceeds size) */
@@ -629,7 +629,7 @@ int ringbuffer_write_frame(ringbuffer_t* rb,
 	}
 
 	/* Write data */
-	if (ringbuffer_write_all(rb, data, flen) < 0) {
+	if (ringbuffer_write_all(rb, data, plen) < 0) {
 		/* >>> Writing data failed >>> */
 		/* We are in an inconsistent state now because writing the
 		 * header apparently succeeded, while writing the
@@ -645,58 +645,11 @@ int ringbuffer_write_frame(ringbuffer_t* rb,
 /*
  * ___________________________________________________________________________
  */
-int ringbuffer_read_frame(ringbuffer_t* rb,
-		uint8_t* header, size_t hlen, uint8_t* data, size_t max_flen) {
-
-	/* Sanity check: make sure input pointer are ok */
-    if (rb == 0 || header == 0 || data == 0) {
-    	/* >>> Invalid pointer(s) >>> */
-        return -1;
-    }
-
-	/* The length of the next frame in the ringbuffer */
-	size_t len = 0;
-
-	if (ringbuffer_peek(rb, (uint8_t*)&len, sizeof(size_t))
-			!= sizeof(size_t)) {
-		/* >>> Reading frame length failed >>> */
-		return -1;
-	}
-
-    /* Sanity check: make sure the whole frame fits into remaining data */
-	if (len + sizeof(size_t) > rb->len) {
-		/* >>> Frame seems longer than there is data in the ringbuffer >>> */
-		return -1;
-	}
-
-    /* Make sure the user-provided buffer is sufficiently large */
-	if (len > (hlen + max_flen)) {
-		/* >>> User-provided buffer too small to hold frame data >>> */
-		return -1;
-	}
-
-	/* discard length (we already know it) */
-	ringbuffer_discard(rb, sizeof(size_t));
-
-	/* the header */
-	ringbuffer_read(rb, header, hlen);
-
-	/* the frame */
-	ringbuffer_read(rb, data, len - hlen);
-
-	/* Return the length of the frame's data part */
-    return len;
-}
-
-
-/*
- * ___________________________________________________________________________
- */
 int ringbuffer_peek_frame(ringbuffer_t* rb,
-		uint8_t* header, size_t hlen, uint8_t* frame, size_t max_flen) {
+		uint8_t* header, size_t hlen, uint8_t* payload, size_t max_plen) {
 
 	/* Sanity check: make sure input pointer are ok */
-    if (rb == 0 || header == 0 || data == 0) {
+    if (rb == 0 || header == 0 || payload == 0) {
     	/* >>> Invalid pointer(s) >>> */
         return -1;
     }
@@ -717,7 +670,7 @@ int ringbuffer_peek_frame(ringbuffer_t* rb,
 	}
 
     /* Make sure the user-provided buffer is sufficiently large */
-	if (len > (hlen + max_flen)) {
+	if (len > (hlen + max_plen)) {
 		/* >>> User-provided buffer too small to hold frame data >>> */
 		return -1;
 	}
@@ -726,6 +679,27 @@ int ringbuffer_peek_frame(ringbuffer_t* rb,
     ringbuffer_peek_offset(rb, sizeof(size_t), header, hlen);
 
     /* Peek frame data and return its length */
-    return ringbuffer_peek_offset(rb, sizeof(size_t) + hlen, frame, len - hlen);
+    return ringbuffer_peek_offset(rb,
+            sizeof(size_t) + hlen, payload, len - hlen);
+}
+
+
+/*
+ * ___________________________________________________________________________
+ */
+int ringbuffer_read_frame(ringbuffer_t* rb,
+		uint8_t* header, size_t hlen, uint8_t* payload, size_t max_plen) {
+
+    /* Peek frame (includes sanity checks) */
+    size_t plen = ringbuffer_peek_frame(rb, header, hlen, payload, max_plen);
+
+    /* Discard frame if peeked successfully */
+    if (plen >= 0) {
+        /* Discard frame length, frame header and data  */
+    	ringbuffer_discard(rb, sizeof(size_t) + hlen + plen);
+    }
+
+    /* Return the number of payload bytes read, or error indication */
+    return plen;
 }
 

@@ -175,21 +175,21 @@ int ringbuffer_count_blocks(ringbuffer_t* rb);
  * TODO: Add description
  */
 int ringbuffer_write_frame(ringbuffer_t* rb,
-		uint8_t* header, size_t hlen, uint8_t* frame, size_t flen);
-
-
-/*
- * TODO: Add description
- */
-int ringbuffer_read_frame(ringbuffer_t* rb,
-		uint8_t* header, size_t hlen, uint8_t* frame, size_t max_flen);
+		uint8_t* header, size_t hlen, uint8_t* frame, size_t plen);
 
 
 /*
  * TODO: Add description
  */
 int ringbuffer_peek_frame(ringbuffer_t* rb,
-		uint8_t* header, size_t hlen, uint8_t* frame, size_t max_flen);
+		uint8_t* header, size_t hlen, uint8_t* frame, size_t max_plen);
+
+
+/*
+ * TODO: Add description
+ */
+int ringbuffer_read_frame(ringbuffer_t* rb,
+		uint8_t* header, size_t hlen, uint8_t* frame, size_t max_plen);
 
 #endif
 
