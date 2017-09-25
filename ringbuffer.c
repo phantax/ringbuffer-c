@@ -32,7 +32,7 @@
  */
 int ringbuffer_init(ringbuffer_t* rb, uint8_t* mem, size_t memlen) {
 
-	/* Sanity check: make sure input pointers are ok */
+    /* Sanity check: make sure input pointers are ok */
     if (rb == 0 || mem == 0) {
         /* >>> Invalid pointer to ringbuffer or memory >>> */
         return -1;
@@ -52,7 +52,7 @@ int ringbuffer_init(ringbuffer_t* rb, uint8_t* mem, size_t memlen) {
  */
 int ringbuffer_clear(ringbuffer_t* rb) {
 
-	/* Sanity check: make sure input pointers are ok */
+    /* Sanity check: make sure input pointers are ok */
     if (rb == 0) {
         /* >>> Invalid pointer to ringbuffer >>> */
         return -1;
@@ -73,7 +73,7 @@ int ringbuffer_clear(ringbuffer_t* rb) {
  */
 int ringbuffer_get_length(ringbuffer_t* rb) {
 
-	/* Sanity check: make sure input pointers are ok */
+    /* Sanity check: make sure input pointers are ok */
     if (rb == 0) {
         /* >>> Invalid pointer to ringbuffer >>> */
         return -1;
@@ -89,7 +89,7 @@ int ringbuffer_get_length(ringbuffer_t* rb) {
  */
 int ringbuffer_get_space(ringbuffer_t* rb) {
 
-	/* Sanity check: make sure input pointers are ok */
+    /* Sanity check: make sure input pointers are ok */
     if (rb == 0) {
         /* >>> Invalid pointer to ringbuffer >>> */
         return -1;
@@ -106,7 +106,7 @@ int ringbuffer_get_space(ringbuffer_t* rb) {
  */
 int ringbuffer_write(ringbuffer_t* rb, uint8_t* data, size_t len) {
 
-	/* Sanity check: make sure input pointers are ok */
+    /* Sanity check: make sure input pointers are ok */
     if (rb == 0 || data == 0) {
         /* >>> Invalid pointer to ringbuffer or data buffer >>> */
         return -1;
@@ -115,16 +115,16 @@ int ringbuffer_write(ringbuffer_t* rb, uint8_t* data, size_t len) {
     /* Don't write more data than the ringbuffer can hold */
     size_t space = (size_t)(rb->size - rb->len);
     if (len > space) {
-    	/* >>> Requested to write more data than the ringbuffer can hold >>> */
-    	/* Truncate write request */
-    	len = space;
+        /* >>> Requested to write more data than the ringbuffer can hold >>> */
+        /* Truncate write request */
+        len = space;
     }
 
     /* Determine the amount of data that can be written linearly */
     size_t linlen = (size_t)(rb->size - rb->iw);
 
     if (len <= linlen) {
-    	/* >>> The whole write request can be performed linearly >>> */
+        /* >>> The whole write request can be performed linearly >>> */
 
         /* Copy data to ringbuffer linearly */
         memcpy(rb->buffer + rb->iw, data, len);
@@ -138,7 +138,7 @@ int ringbuffer_write(ringbuffer_t* rb, uint8_t* data, size_t len) {
         }
 
     } else {
-    	/* >>> The write request requires two steps >>> */
+        /* >>> The write request requires two steps >>> */
 
         /* Copy first part of data linearly */
         memcpy(rb->buffer + rb->iw, data, linlen);
@@ -165,7 +165,7 @@ int ringbuffer_write(ringbuffer_t* rb, uint8_t* data, size_t len) {
  */
 int ringbuffer_write_all(ringbuffer_t* rb, uint8_t* data, size_t len) {
 
-	/* Sanity check: make sure input pointers are ok */
+    /* Sanity check: make sure input pointers are ok */
     if (rb == 0 || data == 0) {
         /* >>> Invalid pointer to ringbuffer or data buffer >>> */
         return -1;
@@ -181,7 +181,7 @@ int ringbuffer_write_all(ringbuffer_t* rb, uint8_t* data, size_t len) {
     size_t linlen = (size_t)(rb->size - rb->iw);
 
     if (len <= linlen) {
-    	/* >>> The whole write request can be performed linearly >>> */
+        /* >>> The whole write request can be performed linearly >>> */
 
         /* Copy data to ringbuffer linearly */
         memcpy(rb->buffer + rb->iw, data, len);
@@ -195,7 +195,7 @@ int ringbuffer_write_all(ringbuffer_t* rb, uint8_t* data, size_t len) {
         }
 
     } else {
-    	/* >>> The write request requires two steps >>> */
+        /* >>> The write request requires two steps >>> */
 
         /* Copy first part of data linearly */
         memcpy(rb->buffer + rb->iw, data, linlen);
@@ -222,7 +222,7 @@ int ringbuffer_write_all(ringbuffer_t* rb, uint8_t* data, size_t len) {
  */
 int ringbuffer_read(ringbuffer_t* rb, uint8_t* data, size_t len) {
 
-	/* Sanity check: make sure input pointers are ok */
+    /* Sanity check: make sure input pointers are ok */
     if (rb == 0 || data == 0) {
         /* >>> Invalid pointer to ringbuffer or data buffer >>> */
         return -1;
@@ -230,8 +230,8 @@ int ringbuffer_read(ringbuffer_t* rb, uint8_t* data, size_t len) {
 
     /* Don't read more than there is data available in the ringbuffer */
     if (len > rb->len) {
-    	/* >>> Reqeusted to read more data than available >>> */
-    	/* Truncate read request */
+        /* >>> Reqeusted to read more data than available >>> */
+        /* Truncate read request */
         len = rb->len;
     }
 
@@ -247,7 +247,7 @@ int ringbuffer_read(ringbuffer_t* rb, uint8_t* data, size_t len) {
         rb->ir += len;
         if (len == linlen) {
             /* >>> rb->ir == rb->size >>> */
-        	/* Wrap read index */
+            /* Wrap read index */
             rb->ir = 0;
         }
 
@@ -278,7 +278,7 @@ int ringbuffer_read(ringbuffer_t* rb, uint8_t* data, size_t len) {
  */
 int ringbuffer_read_memory(ringbuffer_t* rb, uint8_t** data, size_t len) {
 
-	return 0;
+    return 0;
 }
 
 
@@ -385,26 +385,26 @@ int ringbuffer_discard(ringbuffer_t* rb, size_t len) {
         return -1;
     }
 
-	/* don't discard more than there is data */
-	if (len > rb->len) {
-		len = rb->len;
-	}
+    /* don't discard more than there is data */
+    if (len > rb->len) {
+        len = rb->len;
+    }
 
-	rb->len -= len;
+    rb->len -= len;
 
-	/* assuming read index never exceeds size */
-	size_t linlen = (size_t)(rb->size - rb->ir);
+    /* assuming read index never exceeds size */
+    size_t linlen = (size_t)(rb->size - rb->ir);
 
-	if (len < linlen) {
-		/* advance read index */
-		rb->ir += len;
-	} else if (len == linlen) {
-		/* here: rb->ir == rb->size, so wrap read index */
-		rb->ir = 0;
-	} else {
-		/* read index implicitly wrapped */
-		rb->ir = len - linlen;
-	}
+    if (len < linlen) {
+        /* advance read index */
+        rb->ir += len;
+    } else if (len == linlen) {
+        /* here: rb->ir == rb->size, so wrap read index */
+        rb->ir = 0;
+    } else {
+        /* read index implicitly wrapped */
+        rb->ir = len - linlen;
+    }
 
     return len;
 }
@@ -415,37 +415,37 @@ int ringbuffer_discard(ringbuffer_t* rb, size_t len) {
  */
 int ringbuffer_write_block(ringbuffer_t* rb, uint8_t* block, size_t len) {
 
-	/* Sanity check: make sure input pointers are ok */
+    /* Sanity check: make sure input pointers are ok */
     if (rb == 0 || block == 0) {
-    	/* >>> Invalid pointer to ringbuffer or block data to write >>> */
+        /* >>> Invalid pointer to ringbuffer or block data to write >>> */
         return 0;
     }
 
-	/* only write block if there is enough space for
-	 * the full block (assuming len never exceeds size) */
-	size_t space = (size_t)(rb->size - rb->len);
+    /* only write block if there is enough space for
+     * the full block (assuming len never exceeds size) */
+    size_t space = (size_t)(rb->size - rb->len);
 
-	if ((len + sizeof(size_t)) > space) {
-		/* >>> No enough space to write block >>> */
-		return -1;
-	}
+    if ((len + sizeof(size_t)) > space) {
+        /* >>> No enough space to write block >>> */
+        return -1;
+    }
 
-	/* Write block length */
-	if (ringbuffer_write_all(rb, (uint8_t*)&len, sizeof(size_t)) < 0) {
-		/* >>> Writing block length failed >>> */
-		return -1;
-	}
+    /* Write block length */
+    if (ringbuffer_write_all(rb, (uint8_t*)&len, sizeof(size_t)) < 0) {
+        /* >>> Writing block length failed >>> */
+        return -1;
+    }
 
-	/* Write block data */
-	if (ringbuffer_write_all(rb, block, len) < 0) {
-		/* >>> Writing block data failed >>> */
-		/* We are in an inconsistent state now because writing the
-		 * block length apparently succeeded, while writing the
-		 * actual block data failed => return -2 instead of -1 here */
-		return -2;
-	}
+    /* Write block data */
+    if (ringbuffer_write_all(rb, block, len) < 0) {
+        /* >>> Writing block data failed >>> */
+        /* We are in an inconsistent state now because writing the
+         * block length apparently succeeded, while writing the
+         * actual block data failed => return -2 instead of -1 here */
+        return -2;
+    }
 
-	/* Return the total number of bytes written to the ringbuffer */
+    /* Return the total number of bytes written to the ringbuffer */
     return len + sizeof(size_t);
 }
 
@@ -567,25 +567,25 @@ int ringbuffer_count_blocks(ringbuffer_t* rb) {
     size_t n = 0;
 
     /* Length of a block */
-	size_t bl;
+    size_t bl;
 
     /* Traverse ringbuffer and count blocks */
-	size_t len = rb->len;
-	size_t offset = 0;
-	while (len > sizeof(size_t)) {
-		len -= sizeof(size_t);
-		if (ringbuffer_peek_offset(rb, offset, (uint8_t*)&bl, sizeof(size_t))
-				== sizeof(size_t) && bl <= len) {
+    size_t len = rb->len;
+    size_t offset = 0;
+    while (len > sizeof(size_t)) {
+        len -= sizeof(size_t);
+        if (ringbuffer_peek_offset(rb, offset, (uint8_t*)&bl, sizeof(size_t))
+                == sizeof(size_t) && bl <= len) {
             /* >>> Found one more block */
-    		++n;
-			/* Step over this block */
-    		len -= bl;
-    		offset += sizeof(size_t) + bl;
-		} else {
-			/* something is wrong */
+            ++n;
+            /* Step over this block */
+            len -= bl;
+            offset += sizeof(size_t) + bl;
+        } else {
+            /* something is wrong */
             return 0;
-		}
-	}
+        }
+    }
 
     return n;
 }
@@ -595,49 +595,49 @@ int ringbuffer_count_blocks(ringbuffer_t* rb) {
  * ___________________________________________________________________________
  */
 int ringbuffer_write_frame(ringbuffer_t* rb,
-		uint8_t* header, size_t hlen, uint8_t* data, size_t plen) {
+        uint8_t* header, size_t hlen, uint8_t* data, size_t plen) {
 
-	/* Sanity check: make sure input pointer are ok */
+    /* Sanity check: make sure input pointer are ok */
     if (rb == 0 || header == 0 || data == 0) {
-    	/* >>> Invalid pointer(s) >>> */
+        /* >>> Invalid pointer(s) >>> */
         return -1;
     }
 
-	/* The total frame length including header */
-	size_t len = hlen + plen;
+    /* The total frame length including header */
+    size_t len = hlen + plen;
 
-	/* only write frame if there is enough space for
-	 * the full frame (assuming len never exceeds size) */
-	if ((sizeof(size_t) + len) > (size_t)(rb->size - rb->len)) {
-		/* >>> Ringbuffer too small to write frame >>> */
-		return -1;
-	}
+    /* only write frame if there is enough space for
+     * the full frame (assuming len never exceeds size) */
+    if ((sizeof(size_t) + len) > (size_t)(rb->size - rb->len)) {
+        /* >>> Ringbuffer too small to write frame >>> */
+        return -1;
+    }
 
-	/* prepend and write total frame length */
-	if (ringbuffer_write_all(rb, (uint8_t*)&len, sizeof(size_t)) < 0) {
-		/* >>> Writing total length failed >>> */
-		return -1;
-	}
+    /* prepend and write total frame length */
+    if (ringbuffer_write_all(rb, (uint8_t*)&len, sizeof(size_t)) < 0) {
+        /* >>> Writing total length failed >>> */
+        return -1;
+    }
 
-	/* Write header */
-	if (ringbuffer_write_all(rb, header, hlen) < 0) {
-		/* >>> Writing header failed >>> */
-		/* We are in an inconsistent state now because writing the
-		 * total length apparently succeeded, while writing the
-		 * header failed => return -2 instead of -1 here */
-		return -2;
-	}
+    /* Write header */
+    if (ringbuffer_write_all(rb, header, hlen) < 0) {
+        /* >>> Writing header failed >>> */
+        /* We are in an inconsistent state now because writing the
+         * total length apparently succeeded, while writing the
+         * header failed => return -2 instead of -1 here */
+        return -2;
+    }
 
-	/* Write data */
-	if (ringbuffer_write_all(rb, data, plen) < 0) {
-		/* >>> Writing data failed >>> */
-		/* We are in an inconsistent state now because writing the
-		 * header apparently succeeded, while writing the
-		 * data failed => return -2 instead of -1 here */
-		return -2;
-	}
+    /* Write data */
+    if (ringbuffer_write_all(rb, data, plen) < 0) {
+        /* >>> Writing data failed >>> */
+        /* We are in an inconsistent state now because writing the
+         * header apparently succeeded, while writing the
+         * data failed => return -2 instead of -1 here */
+        return -2;
+    }
 
-	/* Return the total number of bytes written to the ringbuffer */
+    /* Return the total number of bytes written to the ringbuffer */
     return len + sizeof(size_t);
 }
 
@@ -646,34 +646,34 @@ int ringbuffer_write_frame(ringbuffer_t* rb,
  * ___________________________________________________________________________
  */
 int ringbuffer_peek_frame(ringbuffer_t* rb,
-		uint8_t* header, size_t hlen, uint8_t* payload, size_t max_plen) {
+        uint8_t* header, size_t hlen, uint8_t* payload, size_t max_plen) {
 
-	/* Sanity check: make sure input pointer are ok */
+    /* Sanity check: make sure input pointer are ok */
     if (rb == 0 || header == 0 || payload == 0) {
-    	/* >>> Invalid pointer(s) >>> */
+        /* >>> Invalid pointer(s) >>> */
         return -1;
     }
 
-	/* The length of the next frame in the ringbuffer */
-	size_t len = 0;
+    /* The length of the next frame in the ringbuffer */
+    size_t len = 0;
 
-	if (ringbuffer_peek(rb, (uint8_t*)&len, sizeof(size_t))
-			!= sizeof(size_t)) {
-		/* >>> Reading frame length failed >>> */
-		return -1;
-	}
+    if (ringbuffer_peek(rb, (uint8_t*)&len, sizeof(size_t))
+            != sizeof(size_t)) {
+        /* >>> Reading frame length failed >>> */
+        return -1;
+    }
 
     /* Sanity check: make sure the whole frame fits into remaining data */
-	if (len + sizeof(size_t) > rb->len) {
-		/* >>> Frame seems longer than there is data in the ringbuffer >>> */
-		return -1;
-	}
+    if (len + sizeof(size_t) > rb->len) {
+        /* >>> Frame seems longer than there is data in the ringbuffer >>> */
+        return -1;
+    }
 
     /* Make sure the user-provided buffer is sufficiently large */
-	if (len > (hlen + max_plen)) {
-		/* >>> User-provided buffer too small to hold frame data >>> */
-		return -1;
-	}
+    if (len > (hlen + max_plen)) {
+        /* >>> User-provided buffer too small to hold frame data >>> */
+        return -1;
+    }
 
     /* Peek frame header */
     ringbuffer_peek_offset(rb, sizeof(size_t), header, hlen);
@@ -688,7 +688,7 @@ int ringbuffer_peek_frame(ringbuffer_t* rb,
  * ___________________________________________________________________________
  */
 int ringbuffer_read_frame(ringbuffer_t* rb,
-		uint8_t* header, size_t hlen, uint8_t* payload, size_t max_plen) {
+        uint8_t* header, size_t hlen, uint8_t* payload, size_t max_plen) {
 
     /* Peek frame (includes sanity checks) */
     size_t plen = ringbuffer_peek_frame(rb, header, hlen, payload, max_plen);
@@ -696,7 +696,7 @@ int ringbuffer_read_frame(ringbuffer_t* rb,
     /* Discard frame if peeked successfully */
     if (plen >= 0) {
         /* Discard frame length, frame header and data  */
-    	ringbuffer_discard(rb, sizeof(size_t) + hlen + plen);
+        ringbuffer_discard(rb, sizeof(size_t) + hlen + plen);
     }
 
     /* Return the number of payload bytes read, or error indication */
