@@ -276,15 +276,6 @@ int ringbuffer_read(ringbuffer_t* rb, uint8_t* data, size_t len) {
 /*
  * ___________________________________________________________________________
  */
-int ringbuffer_read_memory(ringbuffer_t* rb, uint8_t** data, size_t len) {
-
-    return 0;
-}
-
-
-/*
- * ___________________________________________________________________________
- */
 int ringbuffer_peek(ringbuffer_t* rb, uint8_t* data, size_t len) {
 
     if (rb == 0 || data == 0) {

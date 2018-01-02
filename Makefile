@@ -9,12 +9,14 @@ ifeq ($(origin LD), default)
     LD=gcc
 endif
 
+CFLAGS = -std=c99 -O0 -g
+
 
 all: ringbuffer.o
 
-test: ringbuffer.o
+test: ringbuffer.o test.c
 	@echo "\033[01;32m=> Compiling and linking test application ...\033[00;00m"
-	$(CC) ringbuffer.o test.c -o $@
+	$(CC) $(CFLAGS) ringbuffer.o test.c -o $@
 	@echo ""
 
 ringbuffer.o: ringbuffer.c ringbuffer.h

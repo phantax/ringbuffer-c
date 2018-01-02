@@ -105,12 +105,6 @@ int ringbuffer_read(ringbuffer_t* rb, uint8_t* data, size_t len);
 /*
  * TODO: Add description
  */
-int ringbuffer_read_memory(ringbuffer_t* rb, uint8_t** data, size_t len);
-
-
-/*
- * TODO: Add description
- */
 int ringbuffer_peek(ringbuffer_t* rb, uint8_t* data, size_t len);
 
 
