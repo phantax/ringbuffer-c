@@ -1,6 +1,8 @@
 #include "ringbuffer.h"
 #include <stdio.h>
 
+void print(ringbuffer_t* rb);
+
 
 int main(int argc , char *argv[]) {
 
@@ -14,32 +16,43 @@ int main(int argc , char *argv[]) {
         data[i] = i;
     }
 
-    ringbuffer_write(&rb, &(data[0]), 12);
-    ringbuffer_write(&rb, &(data[12]), 3);
+    ringbuffer_write(&rb, &(data[0]), 7);
 
-    printf("len = %i\n", ringbuffer_get_length(&rb));
+    print(&rb);
+    printf("find = %i\n", ringbuffer_find(&rb, 1, &(data[0]), 2));
 
-    uint8_t foo[256];
+    ringbuffer_discard(&rb, 4);
 
-    while (1) {
+    print(&rb);
+    printf("find = %i\n", ringbuffer_find(&rb, 0, &(data[0]), 2));
 
-        int len = ringbuffer_read(&rb, &(foo[0]), 3);
-        printf("read: ");
-        for (size_t i = 0; i < len; i++) {
-            printf("%.2X ", foo[i]);
-        }
-        printf("\n");
+    ringbuffer_write(&rb, &(data[0]), 10);
 
-        printf("len = %i\n", ringbuffer_get_length(&rb));
-
-        if (!len) {
-            break;
-        }
-
-    }
+    print(&rb);
+    printf("find = %i\n", ringbuffer_find(&rb, 4, &(data[0]), 5));
 
     return 0;
 }
+
+
+
+void print(ringbuffer_t* rb) {
+
+    size_t index = rb->ir;
+
+    for (size_t i = 0; i < rb->len; i++) {
+
+        printf("%02X ", rb->buffer[index]);
+
+        if (++index >= rb->size) {
+            index = 0;
+            printf("| ");
+        }
+    }
+
+    printf("\n");
+}
+
 
 
 

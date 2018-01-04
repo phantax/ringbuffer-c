@@ -87,13 +87,13 @@ int ringbuffer_clear(ringbuffer_t* rb);
 /*
  * TODO: Add description
  */
-int ringbuffer_write(ringbuffer_t* rb, uint8_t* data, size_t len);
+int ringbuffer_write(ringbuffer_t* rb, const uint8_t* data, size_t len);
 
 
 /*
  * TODO: Add description
  */
-int ringbuffer_write_all(ringbuffer_t* rb, uint8_t* data, size_t len);
+int ringbuffer_write_all(ringbuffer_t* rb, const uint8_t* data, size_t len);
 
 
 /*
@@ -118,6 +118,12 @@ int ringbuffer_peek_offset(
 /*
  * TODO: Add description
  */
+int ringbuffer_find(ringbuffer_t* rb, size_t offset, uint8_t* data, size_t len);
+
+
+/*
+ * TODO: Add description
+ */
 int ringbuffer_discard(ringbuffer_t* rb, size_t len);
 
 
@@ -128,7 +134,7 @@ int ringbuffer_discard(ringbuffer_t* rb, size_t len);
 /*
  * TODO: Add description
  */
-int ringbuffer_write_block(ringbuffer_t* rb, uint8_t* block, size_t len);
+int ringbuffer_write_block(ringbuffer_t* rb, const uint8_t* block, size_t len);
 
 
 /*

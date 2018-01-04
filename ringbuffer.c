@@ -104,7 +104,7 @@ int ringbuffer_get_space(ringbuffer_t* rb) {
 /*
  * ___________________________________________________________________________
  */
-int ringbuffer_write(ringbuffer_t* rb, uint8_t* data, size_t len) {
+int ringbuffer_write(ringbuffer_t* rb, const uint8_t* data, size_t len) {
 
     /* Sanity check: make sure input pointers are ok */
     if (rb == 0 || data == 0) {
@@ -163,7 +163,7 @@ int ringbuffer_write(ringbuffer_t* rb, uint8_t* data, size_t len) {
 /*
  * ___________________________________________________________________________
  */
-int ringbuffer_write_all(ringbuffer_t* rb, uint8_t* data, size_t len) {
+int ringbuffer_write_all(ringbuffer_t* rb, const uint8_t* data, size_t len) {
 
     /* Sanity check: make sure input pointers are ok */
     if (rb == 0 || data == 0) {
@@ -369,6 +369,59 @@ int ringbuffer_peek_offset(
 /*
  * ___________________________________________________________________________
  */
+int ringbuffer_find(
+        ringbuffer_t* rb, size_t offset, uint8_t* data, size_t len) {
+
+    if (rb == 0 || data == 0) {
+        /* >>> Invalid pointer to ringbuffer or data buffer >>> */
+        return -1;
+    }
+
+    if (len == 0 || len > rb->len) {
+        /* >>> Invalid search pattern >>> */
+        return -1;
+    }
+
+    /* Search index */
+    size_t index = rb->ir + offset;
+
+    while (offset <= (rb->len - len)) {
+
+        /* Search pattern index */
+        size_t i = index;
+        size_t j = 0;
+        while (j < len) {            
+            if (rb->buffer[i] != data[j]) {
+                /* >>> Mismatch >>> */
+                break;
+            }
+            /* Advance sub-indices */
+            j++;
+            if (++i >= rb->size) {
+                i = 0;
+            }
+        }
+
+        if (j == len) {
+            /* >>> Found at offset! >>> */
+            return offset;
+        }
+
+        /* Advance offset / search index */
+        offset++;
+        if (++index >= rb->size) {
+            index = 0;
+        }
+    }
+
+    /* >>> Search pattern not found >>> */
+    return -1;
+}
+
+
+/*
+ * ___________________________________________________________________________
+ */
 int ringbuffer_discard(ringbuffer_t* rb, size_t len) {
 
     if (rb == 0) {
@@ -404,7 +457,7 @@ int ringbuffer_discard(ringbuffer_t* rb, size_t len) {
 /*
  * ___________________________________________________________________________
  */
-int ringbuffer_write_block(ringbuffer_t* rb, uint8_t* block, size_t len) {
+int ringbuffer_write_block(ringbuffer_t* rb, const uint8_t* block, size_t len) {
 
     /* Sanity check: make sure input pointers are ok */
     if (rb == 0 || block == 0) {
