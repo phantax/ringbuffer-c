@@ -398,6 +398,7 @@ int ringbuffer_find(
             /* Advance sub-indices */
             j++;
             if (++i >= rb->size) {
+                /* Wrap sub-index */
                 i = 0;
             }
         }
@@ -410,6 +411,7 @@ int ringbuffer_find(
         /* Advance offset / search index */
         offset++;
         if (++index >= rb->size) {
+            /* Wrap search index */
             index = 0;
         }
     }
