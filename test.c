@@ -24,12 +24,17 @@ int main(int argc , char *argv[]) {
     ringbuffer_discard(&rb, 4);
 
     print(&rb);
-    printf("find = %i\n", ringbuffer_find(&rb, 0, &(data[0]), 2));
+    printf("find = %i\n", ringbuffer_find(&rb, 0, &(data[4]), 3));
 
     ringbuffer_write(&rb, &(data[0]), 10);
 
     print(&rb);
     printf("find = %i\n", ringbuffer_find(&rb, 4, &(data[0]), 5));
+
+    ringbuffer_discard(&rb, 10);
+
+    print(&rb);
+    printf("find = %i\n", ringbuffer_find(&rb, 0, &(data[0]), 1));
 
     return 0;
 }
