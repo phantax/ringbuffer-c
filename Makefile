@@ -9,7 +9,7 @@ ifeq ($(origin LD), default)
     LD=gcc
 endif
 
-CFLAGS = -std=c99 -O0 -g
+CFLAGS += -std=c99 -O0 -g
 
 
 all: ringbuffer.o
