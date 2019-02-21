@@ -236,7 +236,7 @@ int ringbuffer_read(ringbuffer_t* rb, uint8_t* data, size_t len) {
     }
 
     /* Determine the amount of data that can be read linearly */
-    size_t linlen = (size_t)(rb->size - rb->iw);
+    size_t linlen = (size_t)(rb->size - rb->ir);
 
     if (len <= linlen) {
 
